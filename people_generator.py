@@ -25,11 +25,11 @@ class Generator(object):
 
         # standard url formatting
         self.URL = \
-            lambda start, end, transport: \
+            lambda start, end, via, transport: \
                 "http://openls.geog.uni-heidelberg.de/route?"+\
                 "start=%f,%f" % start+\
                 "&end=%f,%f" % end+\
-                "&via="+\
+                "&via=%s" % via+\
                 "&lang=en"+\
                 "&distunit=MI"+\
                 "&routepref=%s" % transport+\
@@ -95,14 +95,16 @@ class Generator(object):
         point_a = self.location.get_start()
         # ending point
         point_z = self.location.get_end()
+        # via points
+        waypoints = self.location.get_waypoints()
 
-        print(point_a, point_z)
+        print(point_a, point_z, waypoints)
 
         # current transportation type
         current_transport = random.choice(self.transport)
         print(current_transport)
 
-        u = self.URL(point_a, point_z, "Car")
+        u = self.URL(point_a, point_z, waypoints, "Car")
         print(u)
 
         url = self.pool.urlopen(
@@ -118,14 +120,10 @@ class Generator(object):
                 lon, lat = i.text.split(" ")
                 path.append("%s,%s" % (lon, lat))
 
-        # amount of waypoints
-        waypoint_amount = random.randint(1, int(len(path) / 3))
-
         # TODO:
-        # Add detour to current path.
-        # ?add POI to path, realistic movement to places.
+        # ? add POI to path, realistic movement to places.
 
-        print(path)
+        print(len(path))
         print(X_DONE)
 
         #TODO:

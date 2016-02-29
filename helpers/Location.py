@@ -26,6 +26,9 @@ class PostCodes(object):
         # ending point
         self.end_point = None
 
+        # waypoints between
+        self.waypoints = None
+
     def generate_points(self):
         # set start_point
         self.start_point = random.choice(self.area)
@@ -33,6 +36,20 @@ class PostCodes(object):
         self.area.remove(self.start_point)
         # set end_point
         self.end_point = random.choice(self.area)
+        # remove end_point, so waypoints don't repeat
+        self.area.remove(self.end_point)
+        #set waypoints
+        way_amount = random.randint(1, 2)
+        self.waypoints = "%20".join(
+            [
+                "%f,%f" % random.choice(self.area) for _ in range(way_amount)
+            ]
+        )
+
+
+
+    def get_waypoints(self):
+        return self.waypoints
 
     def get_start(self):
         return self.start_point
