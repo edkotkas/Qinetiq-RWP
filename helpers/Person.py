@@ -28,6 +28,8 @@ class Person(object):
         self._last_name = random.choice(self._last_names)
         self._generate_uniqueid()
 
+        return self.get_uniqueid(), self.get_firstName(), self.get_lastName()
+
     def get_firstName(self):
         return self._first_name
 
