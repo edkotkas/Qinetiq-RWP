@@ -10,8 +10,12 @@ X_DONE = "Done"
 class Location(object):
 
     def __init__(self):
+
+        # blockers
+        self.openrouteservice = 1000
+        self.geonames = 2000
+
         # postcode data
-        self.data = None
         try:
             with open("helpers/info/postcodes.json") as postcodes:
                 self.data = json.load(postcodes)
@@ -44,6 +48,21 @@ class Location(object):
                 "&noFerries=false"+\
                 "&instructions=false"
 
+        self.sample_url = \
+            lambda start, via, transport:\
+                "\nhttp://www.openrouteservice.org/?"+\
+                "pos=%f,%f" % start+\
+                "&zoom=14"+\
+                "&layer=0B00FTTTTTTTTTT"+\
+                "&routeOpt=%s" % transport+\
+                "&wp=%s" % via.replace("%20",",")+\
+                "&lang=en"+\
+                "&routeLang=en"+\
+                "&distUnit=m"+\
+                "&routeWeight=Fastest"
+
+
+
         try:
             with open("helpers/.pws", "r") as pws:
                 un = pws.readline()
@@ -72,10 +91,13 @@ class Location(object):
 
         self.pool = urllib3.PoolManager(1)
 
-    def generate(self):
+    def generate(self, sample=False):
         """
         Generate whole traversal between points, within a real travel time.
         """
+        if self.openrouteservice <= 100:
+            print("REACHED OPENROUTESERVICE LIMIT(%d calls left)" % self.openrouteservice)
+            time.sleep(3600)
         # print(X_GENERATING)
 
         # initialise location data
@@ -101,6 +123,8 @@ class Location(object):
             "GET", u
         ).data.decode('utf-8')
 
+        self.openrouteservice -= 1
+
         # path xml ElementTree
         e = xml.etree.ElementTree.fromstring(url)
 
@@ -112,15 +136,26 @@ class Location(object):
                 path.append("%s,%s" % (lon, lat))
 
         # print(X_DONE)
+        if sample:
+            self.sample_url = self.sample_url(
+                point_a,
+                str(point_z[0]) +  "," + str(point_z[1]) + "%20" + waypoints,
+                "Car"
+            )
         return path
 
     def _generate_pois(self, lat, lng):
+        if self.geonames <= 100:
+            print("REACHED GEONAMES LIMIT(%d calls left)" % geonames)
+            time.sleep(3600)
 
         u = self.POI_URL(lat, lng)
 
         url = self.pool.urlopen(
             "GET", u
         ).data.decode('utf-8')
+
+        self.geonames -= 1
 
         # path xml ElementTree
         e = xml.etree.ElementTree.fromstring(url)
@@ -142,8 +177,11 @@ class Location(object):
         # remove end_point, so waypoints don't repeat
         locs.remove(self.end_point)
 
+        # TODO:
+        # change waypoints to be taken from the api path.
+
         #set waypoints
-        way_amount = random.randint(1, 2)
+        way_amount = random.randint(1, 3)
         way_points = [
             '%f,%f' % random.choice(locs) for _ in range(way_amount)
         ]

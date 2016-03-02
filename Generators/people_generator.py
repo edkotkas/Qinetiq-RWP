@@ -17,7 +17,7 @@ class Generator(object):
 
         try:
             with open("helpers/.mdbpws", "r") as pws:
-                _ip, _port, _pw = pws.readlines()
+                _ip, _port = pws.readlines()
                 _ip = _ip.strip()
                 _port = int(_port.strip())
         except:
@@ -37,25 +37,30 @@ class Generator(object):
         sys.stdout.write(str(text))
         sys.stdout.flush()
 
-    def generate(self, amount):
+    def generate(self, amount, sample=False):
         """Generate the travel db."""
         people = None
         print("Generating...")
-        for index in range(amount):
+        for index in range(amount if not sample else 1):
             identifier, fname, lname = self.person.generate()
-            visits = self.location.generate()
+            visits = self.location.generate(sample)
             self.c_print("%s/" % str(index+1))
-            self.mov.insert({
-                "uniq_id": '%s' % identifier,
-                "first_name": fname,
-                "last_name": lname,
-                "visits": str(visits)
-            })
-            self.c_print("*")
-            time.sleep(0.5)
+
+            if sample:
+                print(self.location.sample_url)
+            else:
+                self.mov.insert({
+                    "uniq_id": '%s' % identifier,
+                    "first_name": fname,
+                    "last_name": lname,
+                    "visits": str(visits)
+                })
+                self.c_print("*")
+                time.sleep(0.5)
+
         print("\nDone")
 
 
 if __name__ == '__main__':
     g = Generator()
-    g.generate(int(sys.argv[1]))
+    g.generate(int(sys.argv[1]), bool(sys.argv[2]) if sys.argv[2] != None else False)
