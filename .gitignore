@@ -1,2 +1,6 @@
 helpers/__pycache__/
 helpers/.pws
+helpers/.mdbpws
+build/
+people_generator.spec
+cmp.sh

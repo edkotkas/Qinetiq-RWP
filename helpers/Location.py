@@ -3,7 +3,6 @@ import random
 import urllib3                  # retrieve path xml
 import xml.etree.ElementTree    # analyse path xml
 
-
 X_GENERATING = "Generating..."
 X_DONE = "Done"
 
@@ -11,7 +10,6 @@ X_DONE = "Done"
 class Location(object):
 
     def __init__(self):
-
         # postcode data
         self.data = None
         try:
@@ -78,7 +76,7 @@ class Location(object):
         """
         Generate whole traversal between points, within a real travel time.
         """
-        print(X_GENERATING)
+        # print(X_GENERATING)
 
         # initialise location data
         self.generate_points()
@@ -102,6 +100,7 @@ class Location(object):
         url = self.pool.urlopen(
             "GET", u
         ).data.decode('utf-8')
+
         # path xml ElementTree
         e = xml.etree.ElementTree.fromstring(url)
 
@@ -112,7 +111,7 @@ class Location(object):
                 lon, lat = i.text.split(" ")
                 path.append("%s,%s" % (lon, lat))
 
-        print(X_DONE)
+        # print(X_DONE)
         return path
 
     def _generate_pois(self, lat, lng):
@@ -133,19 +132,20 @@ class Location(object):
         return pois
 
     def generate_points(self):
+        locs = self.area
         # set start_point
-        self.start_point = random.choice(self.area)
+        self.start_point = random.choice(locs)
         # remove start_point, so end is not same
-        self.area.remove(self.start_point)
+        locs.remove(self.start_point)
         # set end_point
-        self.end_point = random.choice(self.area)
+        self.end_point = random.choice(locs)
         # remove end_point, so waypoints don't repeat
-        self.area.remove(self.end_point)
+        locs.remove(self.end_point)
 
         #set waypoints
         way_amount = random.randint(1, 2)
         way_points = [
-            '%f,%f' % random.choice(self.area) for _ in range(way_amount)
+            '%f,%f' % random.choice(locs) for _ in range(way_amount)
         ]
 
         pois = []
@@ -165,8 +165,3 @@ class Location(object):
 
     def get_end(self):
         return self.end_point
-
-
-if __name__ == '__main__':
-    l = PostCodes()
-    l.generate()

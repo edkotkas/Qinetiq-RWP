@@ -14,7 +14,16 @@ class Generator(object):
         """
         self.person = Person()
         self.location = Location()
-        self.mongo = pymongo.MongoClient()
+
+        try:
+            with open("helpers/.mdbpws", "r") as pws:
+                _ip, _port, _pw = pws.readlines()
+                _ip = _ip.strip()
+                _port = int(_port.strip())
+        except:
+            raise Exception("Could not load data.")
+
+        self.mongo = pymongo.MongoClient(_ip, _port)
         self.db = self.mongo.qinetiq
         self.mov = self.db.movement
 
@@ -42,6 +51,7 @@ class Generator(object):
                 "last_name": lname,
                 "visits": str(visits)
             })
+            self.c_print("*")
             time.sleep(0.5)
         print("\nDone")
 
