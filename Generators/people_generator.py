@@ -28,46 +28,34 @@ class Generator(object):
         self.db = self.mongo.qinetiq
         self.mov = self.db.movement
 
-        # implement the time data, from travel times
-        self.time_period = 7  # days            ################
-        self.start_time = "01/01/2016 14:32"    # pymongo ISO #
-        self.current_time = ""                  ################
-        self.end_time = "now"
-
     def c_print(self,text):
         sys.stdout.write(str(text))
         sys.stdout.flush()
 
-    def generate(self, amount, sample=False):
+    def generate(self, amount):
         """Generate the travel db."""
         people = None
         print("Generating...")
-        for index in range(amount if not sample else 1):
+        for index in range(amount):
             identifier, fname, lname = self.person.generate()
-            visits = self.location.generate(sample)
+            visits = self.location.generate()
             self.c_print("%s/" % str(index+1))
 
-            if sample:
-                webbrowser.open(self.location.sample_url)
-            else:
-                self.mov.insert({
-                    "uniq_id": '%s' % identifier,
-                    "first_name": fname,
-                    "last_name": lname,
-                    "visits": {
-                        "%d" % i: "%s" % x  for i, x in enumerate(visits)
-                    }
-                })
-                self.c_print("*")
-                time.sleep(0.5)
+            self.mov.insert({
+                "uniq_id": '%s' % identifier,
+                "first_name": fname,
+                "last_name": lname,
+                "visits": {
+                    "%d" % i: "%s" % x  for i, x in enumerate(visits)
+                }
+            })
+
+            self.c_print("*")
+            time.sleep(0.5)
 
         print("\nDone")
 
 
 if __name__ == '__main__':
     g = Generator()
-    try:
-        sample = bool(sys.argv[2])
-    except:
-        sample = False
-    g.generate(int(sys.argv[1]), sample)
+    g.generate(int(sys.argv[1]))

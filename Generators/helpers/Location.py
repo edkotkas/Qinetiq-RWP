@@ -1,7 +1,14 @@
+# TODO:
+# Increase modularity.
+# Remove unecessary duplicates.
+# FINISH Time Calculations
+
+
 import json
 import random
 import urllib3                  # retrieve path xml
 import xml.etree.ElementTree    # analyse path xml
+import pymongo
 
 X_GENERATING = "Generating..."
 X_DONE = "Done"
@@ -46,22 +53,7 @@ class Location(object):
                 "&noUnpavedroads=false"+\
                 "&noSteps=false"+\
                 "&noFerries=false"+\
-                "&instructions=false"
-
-        self.sample_url = \
-            lambda start, via, transport:\
-                "\nhttp://www.openrouteservice.org/?"+\
-                "pos=%f,%f" % start+\
-                "&zoom=14"+\
-                "&layer=0B00FTTTTTTTTTT"+\
-                "&routeOpt=%s" % transport+\
-                "&wp=%s" % via.replace("%20",",")+\
-                "&lang=en"+\
-                "&routeLang=en"+\
-                "&distUnit=m"+\
-                "&routeWeight=Fastest"
-
-
+                "&instructions=true"
 
         try:
             with open("helpers/.pws", "r") as pws:
@@ -87,11 +79,11 @@ class Location(object):
         # waypoints between
         self.waypoints = None
 
-        self.tag = lambda x: "{http://www.opengis.net/gml}"+x
+        self.tag = lambda t, x: "{http://www.opengis.net/%s}%s" % (t, x)
 
         self.pool = urllib3.PoolManager(1)
 
-    def generate(self, sample=False):
+    def generate(self):
         """
         Generate whole traversal between points, within a real travel time.
         """
@@ -130,22 +122,88 @@ class Location(object):
 
         # path points
         path = []
+
+        repl_s = lambda s: s.replace("S", "")
+        repl_m = lambda m: repl_s(m.replace("M", " "))
+        repl_h = lambda h: repl_m(h.replace("H", " "))
+
         for i in e.getiterator():
-            if i.tag == self.tag("pos"):
+
+            # time values
+            if i.tag == self.tag("xls", "RouteInstruction"):
+                if i.get("duration") is not None:
+                    lapsed_time = i.get("duration").replace("PT", "")
+
+                    # formatting
+                    if "H" in lapsed_time:
+                        _h, _m, _s = repl_h(lapsed_time).split(" ")
+                        lapsed_time = _h * 3600 + _m * 60 + _s
+                    elif "M" in lapsed_time:
+                        _m, _s = repl_m(lapsed_time).split(" ")
+                        lapsed_time = _m * 60 + _s
+                    elif "S" in lapsed_time:
+                        lapsed_time = repl_s(lapsed_time)
+
+            # positional values
+            if i.tag == self.tag("gml","pos"):
                 lon, lat = i.text.split(" ")
                 path.append("%s,%s" % (lon, lat))
 
+        # generate a few visits/detours, during movement
         for j in [random.choice(path) for _ in range(1, random.randint(1, 5))]:
             _lon, _lat = j.split(",")
-            path = path + self._generate_pois(float(_lat), float(_lon))
+            left = path[path.index(j):]
+            right = path[:path.index(j)+1]
+            path = left + self._generate_pois(float(_lat), float(_lon)) + right
 
-        # print(X_DONE)
-        if sample:
-            self.sample_url = self.sample_url(
-                point_a,
-                str(point_z[0]) +  "," + str(point_z[1]) + "%20" + waypoints + "%20".join(path),
-                "Car"
-            )
+        return path
+
+    def _filler(self, waypoints):
+        if self.openrouteservice <= 100:
+            print("REACHED OPENROUTESERVICE LIMIT(%d calls left)" % self.openrouteservice)
+            time.sleep(3600)
+        point_a = waypoints[0]
+        point_z = waypoints[-1]
+
+        u = self.URL(point_a, point_z, waypoints[2:-2], "Car")
+
+        url = self.pool.urlopen(
+            "GET", u
+        ).data.decode('utf-8')
+
+        self.openrouteservice -= 1
+
+        # path xml ElementTree
+        e = xml.etree.ElementTree.fromstring(url)
+
+        # path points
+        path = []
+
+        repl_s = lambda s: s.replace("S", "")
+        repl_m = lambda m: repl_s(m.replace("M", " "))
+        repl_h = lambda h: repl_m(h.replace("H", " "))
+
+        for i in e.getiterator():
+
+            # time values
+            if i.tag == self.tag("xls", "RouteInstruction"):
+                if i.get("duration") is not None:
+                    lapsed_time = i.get("duration").replace("PT", "")
+
+                    # formatting
+                    if "H" in lapsed_time:
+                        _h, _m, _s = repl_h(lapsed_time).split(" ")
+                        lapsed_time = _h * 3600 + _m * 60 + _s
+                    elif "M" in lapsed_time:
+                        _m, _s = repl_m(lapsed_time).split(" ")
+                        lapsed_time = _m * 60 + _s
+                    elif "S" in lapsed_time:
+                        lapsed_time = repl_s(lapsed_time)
+
+            # positional values
+            if i.tag == self.tag("gml","pos"):
+                lon, lat = i.text.split(" ")
+                path.append("%s,%s" % (lon, lat))
 
         return path
 
