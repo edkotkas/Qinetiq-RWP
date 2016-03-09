@@ -2,6 +2,7 @@ import pymongo                  # store path/person data
 import random
 import time
 import sys
+import webbrowser
 # import custom helpers
 from helpers import *
 
@@ -23,7 +24,7 @@ class Generator(object):
         except:
             raise Exception("Could not load data.")
 
-        self.mongo = pymongo.MongoClient(_ip, _port)
+        self.mongo = pymongo.MongoClient(_ip)   # , _port
         self.db = self.mongo.qinetiq
         self.mov = self.db.movement
 
@@ -47,13 +48,15 @@ class Generator(object):
             self.c_print("%s/" % str(index+1))
 
             if sample:
-                print(self.location.sample_url)
+                webbrowser.open(self.location.sample_url)
             else:
                 self.mov.insert({
                     "uniq_id": '%s' % identifier,
                     "first_name": fname,
                     "last_name": lname,
-                    "visits": str(visits)
+                    "visits": {
+                        "%d" % i: "%s" % x  for i, x in enumerate(visits)
+                    }
                 })
                 self.c_print("*")
                 time.sleep(0.5)
@@ -63,4 +66,8 @@ class Generator(object):
 
 if __name__ == '__main__':
     g = Generator()
-    g.generate(int(sys.argv[1]), bool(sys.argv[2]) if sys.argv[2] != None else False)
+    try:
+        sample = bool(sys.argv[2])
+    except:
+        sample = False
+    g.generate(int(sys.argv[1]), sample)

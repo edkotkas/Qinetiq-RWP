@@ -135,13 +135,18 @@ class Location(object):
                 lon, lat = i.text.split(" ")
                 path.append("%s,%s" % (lon, lat))
 
+        for j in [random.choice(path) for _ in range(1, random.randint(1, 5))]:
+            _lon, _lat = j.split(",")
+            path = path + self._generate_pois(float(_lat), float(_lon))
+
         # print(X_DONE)
         if sample:
             self.sample_url = self.sample_url(
                 point_a,
-                str(point_z[0]) +  "," + str(point_z[1]) + "%20" + waypoints,
+                str(point_z[0]) +  "," + str(point_z[1]) + "%20" + waypoints + "%20".join(path),
                 "Car"
             )
+
         return path
 
     def _generate_pois(self, lat, lng):
@@ -186,13 +191,6 @@ class Location(object):
             '%f,%f' % random.choice(locs) for _ in range(way_amount)
         ]
 
-        pois = []
-        for points in [self.start_point, self.end_point] + way_points:
-            p = self._generate_pois(points[1], points[0])
-            for i in p:
-                pois.append(i)
-
-        way_points = way_points + pois
         self.waypoints = "%20".join(way_points)
 
     def get_waypoints(self):
