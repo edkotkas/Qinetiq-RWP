@@ -154,7 +154,7 @@ class Location(object):
             _lon, _lat = j.split(",")
             left = path[path.index(j):]
             right = path[:path.index(j)+1]
-            path = left + self._generate_pois(float(_lat), float(_lon)) + right
+            path = left + self._filler(self._generate_pois(float(_lat), float(_lon))) + right
 
         return path
 
@@ -162,10 +162,14 @@ class Location(object):
         if self.openrouteservice <= 100:
             print("REACHED OPENROUTESERVICE LIMIT(%d calls left)" % self.openrouteservice)
             time.sleep(3600)
-        point_a = waypoints[0]
-        point_z = waypoints[-1]
+        point_a = waypoints[0].split(",")
+        point_z = waypoints[-1].split(",")
 
-        u = self.URL(point_a, point_z, waypoints[2:-2], "Car")
+        u = self.URL(
+            (float(point_a[0]), float(point_a[1])),
+            (float(point_z[0]), float(point_z[1])),
+            "%20".join(waypoints[2:-2]), "Car"
+        )
 
         url = self.pool.urlopen(
             "GET", u
