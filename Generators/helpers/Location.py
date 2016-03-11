@@ -9,6 +9,7 @@ import random
 import urllib3                  # retrieve path xml
 import xml.etree.ElementTree    # analyse path xml
 import pymongo
+import time
 
 X_GENERATING = "Generating..."
 X_DONE = "Done"
@@ -83,6 +84,25 @@ class Location(object):
 
         self.pool = urllib3.PoolManager(1)
 
+    def time_converter(self, duration):
+        repl_s = lambda s: s.replace("S", "")
+        repl_m = lambda m: repl_s(m.replace("M", " "))
+        repl_h = lambda h: repl_m(h.replace("H", " "))
+
+        lapsed_time = duration.replace("PT", "")
+
+        # formatting
+        if "H" in lapsed_time:
+            _h, _m, _s = repl_h(lapsed_time).split(" ")
+            lapsed_time = int(_h) * 3600 + int(_m) * 60 + int(_s)
+        elif "M" in lapsed_time:
+            _m, _s = repl_m(lapsed_time).split(" ")
+            lapsed_time = int(_m) * 60 + int(_s)
+        elif "S" in lapsed_time:
+            lapsed_time = int(repl_s(lapsed_time))
+
+        return lapsed_time
+
     def generate(self):
         """
         Generate whole traversal between points, within a real travel time.
@@ -122,7 +142,7 @@ class Location(object):
 
         # path points
         path = []
-
+        timelapse = []
         repl_s = lambda s: s.replace("S", "")
         repl_m = lambda m: repl_s(m.replace("M", " "))
         repl_h = lambda h: repl_m(h.replace("H", " "))
@@ -133,22 +153,24 @@ class Location(object):
             if i.tag == self.tag("xls", "RouteInstruction"):
                 if i.get("duration") is not None:
                     lapsed_time = i.get("duration").replace("PT", "")
-
                     # formatting
                     if "H" in lapsed_time:
                         _h, _m, _s = repl_h(lapsed_time).split(" ")
-                        lapsed_time = _h * 3600 + _m * 60 + _s
+                        lapsed_time = int(_h) * 3600 + int(_m) * 60 + int(_s)
                     elif "M" in lapsed_time:
                         _m, _s = repl_m(lapsed_time).split(" ")
-                        lapsed_time = _m * 60 + _s
+                        lapsed_time = int(_m) * 60 + int(_s)
                     elif "S" in lapsed_time:
-                        lapsed_time = repl_s(lapsed_time)
+                        lapsed_time = int(repl_s(lapsed_time))
+                    # print(lapsed_time)
+                    timelapse.append(lapsed_time)
 
             # positional values
             if i.tag == self.tag("gml","pos"):
                 lon, lat = i.text.split(" ")
                 path.append("%s,%s" % (lon, lat))
-
+        print("points: ",len(path))
+        print("times: ", len(timelapse))
         # generate a few visits/detours, during movement
         for j in [random.choice(path) for _ in range(1, random.randint(1, 5))]:
             _lon, _lat = j.split(",")
