@@ -9,15 +9,17 @@ class Person(object):
 
         self._first_names = [
             fn.strip() for fn in \
-                            open("helpers/info/first_names.txt").readlines()
+                            open("Generators/helpers/info/first_names.txt").readlines()
         ]
         self._last_names = [
             ln.strip() for ln in \
-                           open("helpers/info/last_names.txt").readlines()
+                           open("Generators/helpers/info/last_names.txt").readlines()
         ]
 
         self._first_name = None
         self._last_name = None
+        self._password = None
+        self._phone = None
         self._unique_id = None
 
     def generate(self):
@@ -26,6 +28,7 @@ class Person(object):
         """
         self._first_name = random.choice(self._first_names)
         self._last_name = random.choice(self._last_names)
+
         self._generate_uniqueid()
 
         return self.get_uniqueid(), self.get_firstName(), self.get_lastName()
