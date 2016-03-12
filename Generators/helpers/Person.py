@@ -9,11 +9,11 @@ class Person(object):
 
         self._first_names = [
             fn.strip() for fn in \
-                            open("helpers/info/first_names.txt").readlines()
+                            open("Generators/helpers/info/first_names.txt").readlines()
         ]
         self._last_names = [
             ln.strip() for ln in \
-                           open("helpers/info/last_names.txt").readlines()
+                           open("Generators/helpers/info/last_names.txt").readlines()
         ]
 
         self._first_name = None
