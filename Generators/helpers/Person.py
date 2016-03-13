@@ -1,54 +1,61 @@
 import uuid
 import os
 import random
+import string
+import datetime
 
 
 class Person(object):
 
     def __init__(self):
 
-        self._first_names = [
+        self.first_names = [
             fn.strip() for fn in \
-                            open("Generators/helpers/info/first_names.txt").readlines()
+                open("Generators/helpers/info/first_names.txt").readlines()
         ]
-        self._last_names = [
+        self.last_names = [
             ln.strip() for ln in \
-                           open("Generators/helpers/info/last_names.txt").readlines()
+                open("Generators/helpers/info/last_names.txt").readlines()
         ]
 
-        self._first_name = None
-        self._last_name = None
-        self._password = None
-        self._phone = None
-        self._unique_id = None
+        self.first_name = None
+        self.last_name = None
+
+        self.password = None
+        self.phone = None
+        self.dob = None
+        self.unique_id = None
 
     def generate(self):
         """
         Generate a person with their unique identifier.
         """
-        self._first_name = random.choice(self._first_names)
-        self._last_name = random.choice(self._last_names)
+        self.first_name = random.choice(self.first_names)
+        self.last_name = random.choice(self.last_names)
 
-        self._generate_uniqueid()
-
-        return self.get_uniqueid(), self.get_firstName(), self.get_lastName()
-
-    def get_firstName(self):
-        return self._first_name
-
-    def get_lastName(self):
-        return self._last_name
-
-    def _generate_uniqueid(self):
-        self._unique_id = uuid.uuid5(
-            uuid.uuid4(), "%s %s" % (self.get_firstName(), self.get_lastName())
+        self.password = ''.join(
+            random.choice(
+                string.digits + string.ascii_letters
+            ) for _ in range(8)
         )
 
-    def get_uniqueid(self):
-        return self._unique_id
+        p1 = ["0","7"]
+        p2 = [str(random.randint(0, 9)) for _ in range(3)]
+        p3 = [str(random.randint(0, 9)) for _ in range(3)]
+        p4 = [str(random.randint(0, 9)) for _ in range(3)]
+        self.phone = ''.join(p1+p2+p3+p4)
 
+        y = random.randint(1980, 1998)
+        m = random.randint(1, 12)
+        d = random.randint(1, 28)
+
+        self.dob = datetime.datetime(y, m, d)
+
+        self.unique_id = uuid.uuid5(
+            uuid.UUID('e4939ddb-1dcd-4cfb-b71f-903e18160ef6'),
+            "%s %s" % (self.first_name, self.last_name)
+        )
 
 if __name__ == '__main__':
     p = Person()
     p.generate()
-    print(p.get_uniqueid(), p.get_firstName(), p.get_lastName())

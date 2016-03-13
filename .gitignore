@@ -4,3 +4,4 @@ Generators/helpers/.mdbpws
 Generators/build/
 Generators/people_generator.spec
 Generators/cmp.sh
+PeopleGenerator

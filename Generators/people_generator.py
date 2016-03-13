@@ -26,9 +26,28 @@ class Generator(object):
 
         self.mongo = pymongo.MongoClient(_ip)   # , _port
         self.db = self.mongo.qinetiq
+
+        # movement data
         self.mov = self.db.movement
-        # self.people = self.db.people
-        # self.gp = self.db.health
+
+        # people data
+        self.people = self.db.people
+
+        # health data
+        self.gp = self.db.health
+        self.symptoms = [
+            "sore throat",
+            "fever",
+            "fatigue",
+            "muscle ache",
+            "chest discomfort",
+            "breathing difficulty",
+            "nausea",
+            "coughing up blood",
+            "painful swallowing",
+            "shock",
+            "meningitis"
+        ]
 
     def c_print(self,text):
         sys.stdout.write(str(text))
@@ -36,15 +55,42 @@ class Generator(object):
 
     def generate(self, amount):
         """Generate the travel db."""
-        people = None
         print("Generating...")
         for index in range(amount):
-            identifier, fname, lname = self.person.generate()
-            visits = self.location.generate()
             self.c_print("%s/" % str(index+1))
 
+            self.person.generate()
+            self.c_print("-")
+
+            visits = self.location.generate()
+            self.c_print("=")
+
+            self.people.insert({
+                "dateOfBirth": self.person.dob,
+                "firstName": self.person.first_name,
+                "lastName": self.person.last_name,
+                "phoneNumber": self.person.phone,
+                "password": self.person.password,
+                "uid": self.person.unique_id
+            })
+
+            self.c_print("*")
+
+            self.gp.insert({
+                "uid": '%s' % self.person.unique_id,
+                "symptoms": [
+                    random.choice([
+                        "",
+                        (random.choice(self.symptoms) \
+                            for _ in range(len(self.symptoms)))
+                    ])
+                ]
+            })
+
+            self.c_print("*")
+
             self.mov.insert({
-                "uniq_id": '%s' % identifier,
+                "uid": '%s' % self.person.unique_id,
                 "visited": [{
                     "lat": x.split(" ")[1],
                     "lon": x.split(" ")[0],
