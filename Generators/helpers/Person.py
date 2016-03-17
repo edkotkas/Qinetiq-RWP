@@ -48,14 +48,18 @@ class Person(object):
         y = random.randint(1980, 1998)
         m = random.randint(1, 12)
         d = random.randint(1, 28)
+        h = random.randint(0, 23)
+        M = random.randint(0, 59)
+        s = random.randint(0, 59)
 
-        self.dob = datetime.datetime(y, m, d)
+        self.dob = datetime.datetime(y, m, d, h, M, s)
 
         self.unique_id = uuid.uuid5(
             uuid.UUID('e4939ddb-1dcd-4cfb-b71f-903e18160ef6'),
-            "%s %s" % (self.first_name, self.last_name)
+            "%s %s %s" % (self.first_name, self.last_name, self.password)
         )
 
 if __name__ == '__main__':
     p = Person()
     p.generate()
+    print(p.first_name, p.last_name, p.phone, p.dob, p.unique_id, p.password)

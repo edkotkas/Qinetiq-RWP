@@ -48,6 +48,9 @@ class Generator(object):
             "shock",
             "meningitis"
         ]
+        self.symptoms = [
+            *symptoms[:7]*100, *self.symptoms[7:]
+        ]
 
     def c_print(self,text):
         sys.stdout.write(str(text))
@@ -76,15 +79,21 @@ class Generator(object):
 
             self.c_print("*")
 
+            symptoms = list(set([
+                random.choice(chance_leveler) \
+                    for _ in range(
+                        0, random.randint(
+                            0, random.randint(
+                                0, len(symptoms)
+                            )
+                        )
+                    )
+                ]
+            ))
+
             self.gp.insert({
                 "uid": '%s' % self.person.unique_id,
-                "symptoms": [
-                    random.choice([
-                        "",
-                        (random.choice(self.symptoms) \
-                            for _ in range(len(self.symptoms)))
-                    ])
-                ]
+                "symptoms": ""
             })
 
             self.c_print("*")
