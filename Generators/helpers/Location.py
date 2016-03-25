@@ -12,7 +12,7 @@ import re
 class Location(object):
 
     def __init__(self):
-
+        cwd = os.getcwd()
         self.year = 2016
         self.month = 1
         self.day = 1
@@ -34,7 +34,7 @@ class Location(object):
 
         # import postcode data
         self.postcode_data = xml.etree.ElementTree.parse(
-            "Generators/helpers/info/postcodes.xml"
+            cwd+"/helpers/info/postcodes.xml"
         ).getroot()
 
         # OpenRouteService URL
@@ -43,7 +43,7 @@ class Location(object):
                 "http://openls.geog.uni-heidelberg.de/route?"+\
                 "start=%f,%f" % start_coord+\
                 "&end=%f,%f" % end_coord+\
-                "&via=%s" % via+\
+                "&via=%s" % via.replace("%20", ",")+\
                 "&lang=en"+\
                 "&distunit=MI"+\
                 "&routepref=%s" % transport+\
@@ -59,7 +59,7 @@ class Location(object):
 
         # import private data
         try:
-            with open("Generators/helpers/.pws", "r") as pws:
+            with open(cwd+"/helpers/.pws", "r") as pws:
                 UN = pws.readline()
         except:
             raise Exception("Could not load UN data.")
@@ -177,7 +177,7 @@ class Location(object):
         # detours
         detours = [
             random.choice(area) for _ in range(
-                random.randint(0, random.randint(1, 4))
+                random.randint(0, random.randint(1, 2))
             )
         ]
 
@@ -217,7 +217,7 @@ class Location(object):
                         i.text for i in child[0] \
                             if i.tag == self.tag("gml","pos")
                     ])
-
+        print(u)
         if len(lapsed_time) == 0 or len(points) == 0:
             # TODO: fix empty error
             return self.generate()

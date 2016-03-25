@@ -5,6 +5,7 @@ import sys
 import webbrowser
 # import custom helpers
 from helpers import *
+import os
 
 
 class Generator(object):
@@ -13,11 +14,12 @@ class Generator(object):
         """
             People Generator.
         """
+        cwd = os.getcwd()
         self.person = Person()
         self.location = Location()
 
         try:
-            with open("Generators/helpers/.mdbpws", "r") as pws:
+            with open(cwd+"/helpers/.mdbpws", "r") as pws:
                 _ip, _port = pws.readlines()
                 _ip = _ip.strip()
                 _port = int(_port.strip())
@@ -49,7 +51,7 @@ class Generator(object):
             "meningitis"
         ]
         self.symptoms = [
-            *symptoms[:7]*100, *self.symptoms[7:]
+            *self.symptoms[:7]*100, *self.symptoms[7:]
         ]
 
     def c_print(self,text):
@@ -80,11 +82,11 @@ class Generator(object):
             self.c_print("*")
 
             symptoms = list(set([
-                random.choice(chance_leveler) \
+                random.choice(self.symptoms) \
                     for _ in range(
                         0, random.randint(
                             0, random.randint(
-                                0, len(symptoms)
+                                0, len(self.symptoms)
                             )
                         )
                     )

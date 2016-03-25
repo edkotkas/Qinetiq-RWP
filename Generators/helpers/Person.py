@@ -3,19 +3,19 @@ import os
 import random
 import string
 import datetime
-
+import os
 
 class Person(object):
 
     def __init__(self):
-
+        cwd = os.getcwd()
         self.first_names = [
             fn.strip() for fn in \
-                open("Generators/helpers/info/first_names.txt").readlines()
+                open(cwd+"/helpers/info/first_names.txt").readlines()
         ]
         self.last_names = [
             ln.strip() for ln in \
-                open("Generators/helpers/info/last_names.txt").readlines()
+                open(cwd+"/helpers/info/last_names.txt").readlines()
         ]
 
         self.first_name = None
