@@ -217,7 +217,7 @@ class Location(object):
                         i.text for i in child[0] \
                             if i.tag == self.tag("gml","pos")
                     ])
-        print(u)
+        # print(u)
         if len(lapsed_time) == 0 or len(points) == 0:
             # TODO: fix empty error
             return self.generate()

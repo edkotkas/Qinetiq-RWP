@@ -26,7 +26,7 @@ class Generator(object):
         except:
             raise Exception("Could not load data.")
 
-        self.mongo = pymongo.MongoClient(_ip)   # , _port
+        self.mongo = pymongo.MongoClient(_ip, _port)   # , _port
         self.db = self.mongo.qinetiq
 
         # movement data
@@ -51,7 +51,7 @@ class Generator(object):
             "meningitis"
         ]
         self.symptoms = [
-            *self.symptoms[:7]*100, *self.symptoms[7:]
+            *self.symptoms[:7]*10, *self.symptoms[7:]
         ]
 
     def c_print(self,text):
@@ -79,7 +79,7 @@ class Generator(object):
                 "uid": self.person.unique_id
             })
 
-            self.c_print("*")
+            self.c_print("#")
 
             symptoms = list(set([
                 random.choice(self.symptoms) \
@@ -95,10 +95,10 @@ class Generator(object):
 
             self.gp.insert({
                 "uid": '%s' % self.person.unique_id,
-                "symptoms": ""
+                "symptoms": symptoms
             })
 
-            self.c_print("*")
+            self.c_print("&")
 
             self.mov.insert({
                 "uid": '%s' % self.person.unique_id,
@@ -117,4 +117,4 @@ class Generator(object):
 
 if __name__ == '__main__':
     g = Generator()
-    g.generate(1)
+    g.generate(1000)
